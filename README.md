@@ -82,7 +82,7 @@ pip install -r requirements.txt
 ## 节点位置
 
 在ComfyUI中，您可以在以下位置找到该节点：
-**Add Node → JM-MiniMax-API/Video → volcengine-seedream-v3**
+**Add Node → JM-Volcengine-API/Seedream → volcengine-seedream-v3**
 
 ## API配置
 

@@ -43,7 +43,7 @@ class VolcengineSeeDreamV3Node:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
     FUNCTION = "generate_image"
-    CATEGORY = "JM-MiniMax-API/Video"
+    CATEGORY = "JM-Volcengine-API/Seedream"
     
     def sign(self, key, msg):
         """Generate HMAC signature"""
