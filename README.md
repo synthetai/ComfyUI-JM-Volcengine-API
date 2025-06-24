@@ -10,6 +10,7 @@
 - 支持URL和Base64图像响应格式
 - 完整的错误处理机制
 - 同时输出图像和图片URL链接
+- 自动保存图片到本地文件，支持自定义文件名前缀
 
 ## 安装
 
@@ -46,6 +47,7 @@ pip install -r requirements.txt
 - **guidance_scale**: 文本描述的影响程度（默认：2.5，范围：1.0-10.0）
 - **aspect_ratio**: 图像宽高比，支持1.5K分辨率预设（默认：1:1）
 - **return_url**: 是否返回图片URL链接（默认：True）
+- **filename_prefix**: 本地保存文件名前缀（默认：seedream）
 
 ### 支持的图像分辨率 (1.5K)
 
@@ -83,6 +85,7 @@ pip install -r requirements.txt
 | guidance_scale | scale | 引导强度 |
 | aspect_ratio | width/height | 自动设置宽高比 |
 | return_url | return_url | 返回图片URL |
+| filename_prefix | - | 本地文件名前缀 |
 
 ## 节点位置
 
@@ -112,6 +115,8 @@ pip install -r requirements.txt
 - 请合理使用API避免超出配额限制
 - 网络环境需要能够访问火山引擎API服务
 - image_url输出可以用于后续的图像处理或保存链接
+- 生成的图片会自动保存到`output`目录下，文件名格式为`{filename_prefix}_0001.png`
+- 如果文件名重复，序号会自动递增（如：`seedream_0002.png`）
 
 ## 技术支持
 

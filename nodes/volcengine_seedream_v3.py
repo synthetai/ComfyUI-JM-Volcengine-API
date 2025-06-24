@@ -37,6 +37,7 @@ class VolcengineSeeDreamV3Node:
                 "guidance_scale": ("FLOAT", {"default": 2.5, "min": 1.0, "max": 10.0, "step": 0.1}),
                 "aspect_ratio": (["1:1", "4:3", "3:2", "16:9", "9:16", "21:9"], {"default": "1:1"}),
                 "return_url": ("BOOLEAN", {"default": True}),
+                "filename_prefix": ("STRING", {"default": "seedream", "multiline": False}),
             }
         }
     
@@ -180,8 +181,42 @@ class VolcengineSeeDreamV3Node:
         }
         return resolution_map.get(aspect_ratio, (1536, 1536))
     
+    def get_unique_filename(self, prefix, output_dir="output", extension="png"):
+        """Generate unique filename with auto-incrementing number"""
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        
+        counter = 1
+        while True:
+            filename = f"{prefix}_{counter:04d}.{extension}"
+            filepath = os.path.join(output_dir, filename)
+            if not os.path.exists(filepath):
+                return filepath, filename
+            counter += 1
+    
+    def save_image_from_tensor(self, image_tensor, filename_prefix):
+        """Save image tensor to local file and return filepath"""
+        try:
+            # Convert tensor back to PIL Image
+            image_array = image_tensor.squeeze(0).cpu().numpy()
+            image_array = (image_array * 255).astype(np.uint8)
+            image = Image.fromarray(image_array)
+            
+            # Get unique filename
+            filepath, filename = self.get_unique_filename(filename_prefix)
+            
+            # Save image
+            image.save(filepath)
+            print(f"Image saved to: {filepath}")
+            
+            return filepath
+            
+        except Exception as e:
+            print(f"Failed to save image: {str(e)}")
+            return ""
+    
     def generate_image(self, access_key, secret_key, prompt, use_pre_llm=False, 
-                      seed=-1, guidance_scale=2.5, aspect_ratio="1:1", return_url=True):
+                      seed=-1, guidance_scale=2.5, aspect_ratio="1:1", return_url=True, filename_prefix="seedream"):
         """
         Generate image using Volcengine SeeDream V3 API
         """
@@ -265,7 +300,11 @@ class VolcengineSeeDreamV3Node:
             else:
                 raise Exception("No valid image data found in API response")
             
+            # Save image to local file
+            saved_filepath = self.save_image_from_tensor(image_tensor, filename_prefix)
+            
             print("Image generated successfully!")
+            print(f"Image saved as: {saved_filepath}")
             return (image_tensor, image_url)
             
         except Exception as e:
