@@ -40,8 +40,8 @@ class VolcengineSeeDreamV3Node:
             }
         }
     
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("image", "image_url")
     FUNCTION = "generate_image"
     CATEGORY = "JM-Volcengine-API/Seedream"
     
@@ -234,38 +234,42 @@ class VolcengineSeeDreamV3Node:
             
             # Parse response
             result = response.json()
+            print(f"API Response: {result}")
             
-            if 'ResponseMetadata' in result and result['ResponseMetadata'].get('Error'):
-                error_info = result['ResponseMetadata']['Error']
-                raise Exception(f"API Error: {error_info.get('Message', 'Unknown error')}")
+            # Check for API errors
+            if result.get('code') != 10000:
+                error_message = result.get('message', 'Unknown error')
+                raise Exception(f"API Error (code: {result.get('code')}): {error_message}")
             
             # Extract image data
-            if 'Result' not in result or 'data' not in result['Result']:
-                raise Exception("No image data in API response")
+            if 'data' not in result:
+                raise Exception("No data field in API response")
             
-            data = result['Result']['data']
+            data = result['data']
             
             # Handle URL or base64 response
-            if return_url and 'image_url' in data:
+            image_url = ""
+            if return_url and 'image_urls' in data and data['image_urls']:
                 # Download image from URL
-                image_url = data['image_url']
+                image_url = data['image_urls'][0]  # Get first image URL
                 print(f"Downloading image from URL: {image_url}")
                 image_tensor = self.download_image_from_url(image_url)
                 
-            elif 'binary_data_base64' in data:
+            elif 'binary_data_base64' in data and data['binary_data_base64']:
                 # Decode base64 image
                 print("Decoding base64 image data...")
                 base64_data = data['binary_data_base64'][0] if isinstance(data['binary_data_base64'], list) else data['binary_data_base64']
                 image_tensor = self.decode_base64_image(base64_data)
+                image_url = "base64_image"  # Indicate this is from base64 data
                 
             else:
                 raise Exception("No valid image data found in API response")
             
             print("Image generated successfully!")
-            return (image_tensor,)
+            return (image_tensor, image_url)
             
         except Exception as e:
             print(f"Error generating image: {str(e)}")
             # Return a blank image in case of error
             blank_image = torch.zeros((1, height, width, 3), dtype=torch.float32)
-            return (blank_image,) 
+            return (blank_image, "") 

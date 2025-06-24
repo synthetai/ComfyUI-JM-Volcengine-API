@@ -9,6 +9,7 @@
 - 自动处理API签名验证
 - 支持URL和Base64图像响应格式
 - 完整的错误处理机制
+- 同时输出图像和图片URL链接
 
 ## 安装
 
@@ -29,6 +30,10 @@ pip install -r requirements.txt
 ## 使用方法
 
 ### 节点参数
+
+#### 输出参数
+- **image**: 生成的图像（IMAGE格式）
+- **image_url**: 图片下载链接（STRING格式，24小时有效）
 
 #### 必需参数
 - **access_key**: 火山引擎API访问密钥
@@ -106,6 +111,7 @@ pip install -r requirements.txt
 - 建议使用1.3K-1.5K分辨率获得最佳画质
 - 请合理使用API避免超出配额限制
 - 网络环境需要能够访问火山引擎API服务
+- image_url输出可以用于后续的图像处理或保存链接
 
 ## 技术支持
 
