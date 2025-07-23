@@ -82,6 +82,7 @@ pip install -r requirements.txt
    - **scale**: 文本描述影响程度 (可选，0.0-1.0，默认0.5)
    - **seed**: 随机种子 (可选，-1表示随机)
    - **filename_prefix**: 保存文件名前缀 (可选)
+   - **return_url**: 是否返回图片URL链接 (可选，默认True，24小时有效)
 
 ## 参数说明
 
@@ -125,6 +126,9 @@ pip install -r requirements.txt
   - 0.0-0.3: 轻微编辑，主要保持原图特征
   - 0.4-0.6: 平衡编辑，文本和原图影响相当
   - 0.7-1.0: 强度编辑，更倾向于遵循文本描述
+- **return_url**: 控制返回格式
+  - True: 返回24小时有效的图片URL链接（便于分享和下载）
+  - False: 返回Base64编码数据（数据更安全，但体积较大）
 - **使用建议**：
   - 使用清晰的，分辨率高的底图
   - 编辑指令使用自然语言即可
@@ -145,7 +149,7 @@ pip install -r requirements.txt
 
 ### Img Edit V3.0 输出 (新增)
 - **image**: 编辑后的图片张量，可连接到其他节点
-- **image_url**: 图片的URL链接或数据类型说明
+- **image_url**: 图片的URL链接（当return_url=True时）或Base64数据信息（当return_url=False时）
 - **local_image_path**: 本地保存的图片文件路径
 
 ## 注意事项

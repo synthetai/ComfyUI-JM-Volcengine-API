@@ -55,6 +55,10 @@ class VolcengineImgEditV3:
                     "default": "seededit_v3",
                     "tooltip": "保存文件名前缀"
                 }),
+                "return_url": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "是否返回图片URL链接（24小时有效）"
+                }),
             }
         }
 
@@ -288,7 +292,7 @@ class VolcengineImgEditV3:
             print(f"请求异常: {str(e)}")
             return None
 
-    def query_result(self, access_key, secret_key, task_id, max_retries=60, retry_interval=5):
+    def query_result(self, access_key, secret_key, task_id, return_url=True, max_retries=60, retry_interval=5):
         """查询任务结果"""
         # 构造请求参数
         query_params = {
@@ -297,10 +301,19 @@ class VolcengineImgEditV3:
         }
         formatted_query = self.format_query(query_params)
         
-        # 构造请求体
+        # 构造请求体，添加req_json参数来控制返回格式
+        req_json_config = {
+            "return_url": return_url,
+            "add_logo": False,
+            "position": 0,
+            "language": 0,
+            "opacity": 0.3
+        }
+        
         body_params = {
             "req_key": self.req_key,
-            "task_id": task_id
+            "task_id": task_id,
+            "req_json": json.dumps(req_json_config)
         }
         
         formatted_body = json.dumps(body_params)
@@ -367,7 +380,7 @@ class VolcengineImgEditV3:
         print("查询超时，任务可能仍在处理中")
         return None
 
-    def edit_image(self, access_key, secret_key, image, prompt, scale=0.5, seed=-1, filename_prefix="seededit_v3"):
+    def edit_image(self, access_key, secret_key, image, prompt, scale=0.5, seed=-1, filename_prefix="seededit_v3", return_url=True):
         """主要的图片编辑函数"""
         
         # 验证必需参数
@@ -393,7 +406,7 @@ class VolcengineImgEditV3:
             print("等待任务完成...")
             
             # 查询结果
-            result = self.query_result(access_key, secret_key, task_id)
+            result = self.query_result(access_key, secret_key, task_id, return_url)
             
             if not result:
                 return self.create_blank_image(), "错误：任务执行失败或超时", ""
@@ -418,7 +431,9 @@ class VolcengineImgEditV3:
                     # 保存图片
                     pil_image = Image.fromarray((image_tensor.squeeze(0).cpu().numpy() * 255).astype(np.uint8))
                     local_path = self.save_image(pil_image, filename_prefix)
-                    return image_tensor, "base64数据", local_path or "保存失败"
+                    # 返回base64数据类型说明，而不是简单的"base64数据"
+                    image_url_info = f"Base64编码数据 (长度: {len(base64_str)} 字符)"
+                    return image_tensor, image_url_info, local_path or "保存失败"
                 else:
                     return self.create_blank_image(), "错误：解码base64图片失败", ""
             
