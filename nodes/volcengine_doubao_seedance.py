@@ -23,7 +23,7 @@ class VolcengineDoubaoSeedance:
                     "multiline": False, 
                     "tooltip": "火山方舟API密钥"
                 }),
-                "model": (["doubao-seedance-1-0-pro-250528"], {
+                "model": (["doubao-seedance-1-0-pro-250528", "doubao-seedance-1-0-lite-i2v-250428"], {
                     "default": "doubao-seedance-1-0-pro-250528",
                     "tooltip": "模型ID"
                 }),
@@ -34,12 +34,11 @@ class VolcengineDoubaoSeedance:
                 }),
             },
             "optional": {
-                "image": ("IMAGE", {
-                    "tooltip": "输入图片（图生视频模式）"
+                "first_frame": ("IMAGE", {
+                    "tooltip": "首帧图片（图生视频模式）"
                 }),
-                "image_role": (["first_frame", "last_frame"], {
-                    "default": "first_frame",
-                    "tooltip": "图片角色：首帧或尾帧"
+                "last_frame": ("IMAGE", {
+                    "tooltip": "尾帧图片（首尾帧图生视频模式，配合lite-i2v模型使用）"
                 }),
                 "resolution": (["480p", "720p", "1080p"], {
                     "default": "720p",
@@ -264,7 +263,7 @@ class VolcengineDoubaoSeedance:
             print(f"下载视频时发生错误: {str(e)}")
             return None
 
-    def generate_video(self, ark_api_key, model, prompt, image=None, image_role="first_frame", 
+    def generate_video(self, ark_api_key, model, prompt, first_frame=None, last_frame=None, 
                       resolution="720p", ratio="adaptive", duration=5, framepersecond=24, 
                       watermark=False, seed=-1, camerafixed=False, filename_prefix="doubao_seedance"):
         """主要的视频生成函数"""
@@ -292,23 +291,55 @@ class VolcengineDoubaoSeedance:
                 "text": text_with_commands
             })
             
-            # 如果有图片，添加图片内容（图生视频模式）
-            if image is not None:
-                print("检测到输入图片，使用图生视频模式")
-                image_base64 = self.image_to_base64(image)
-                
-                image_content = {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": image_base64
+            # 处理图片输入（图生视频模式）
+            if first_frame is not None or last_frame is not None:
+                if first_frame is not None and last_frame is not None:
+                    print("检测到首尾帧图片，使用首尾帧图生视频模式")
+                    # 处理首帧图片
+                    first_frame_base64 = self.image_to_base64(first_frame)
+                    first_frame_content = {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": first_frame_base64
+                        },
+                        "role": "first_frame"
                     }
-                }
-                
-                # 如果指定了图片角色，添加role字段
-                if image_role in ["first_frame", "last_frame"]:
-                    image_content["role"] = image_role
-                
-                content_list.append(image_content)
+                    content_list.append(first_frame_content)
+                    
+                    # 处理尾帧图片
+                    last_frame_base64 = self.image_to_base64(last_frame)
+                    last_frame_content = {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": last_frame_base64
+                        },
+                        "role": "last_frame"
+                    }
+                    content_list.append(last_frame_content)
+                    
+                elif first_frame is not None:
+                    print("检测到首帧图片，使用图生视频模式")
+                    first_frame_base64 = self.image_to_base64(first_frame)
+                    first_frame_content = {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": first_frame_base64
+                        },
+                        "role": "first_frame"
+                    }
+                    content_list.append(first_frame_content)
+                    
+                elif last_frame is not None:
+                    print("检测到尾帧图片，使用图生视频模式")
+                    last_frame_base64 = self.image_to_base64(last_frame)
+                    last_frame_content = {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": last_frame_base64
+                        },
+                        "role": "last_frame"
+                    }
+                    content_list.append(last_frame_content)
             else:
                 print("使用文生视频模式")
             
